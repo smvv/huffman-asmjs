@@ -1,0 +1,17 @@
+/*!
+ * fireshell
+ * Fiercely quick and opinionated front-ends
+ * http://getfireshell.com
+ * @author Todd Motto
+ * @version 1.1.0
+ * Copyright 2013. MIT licensed.
+ */
+
+/*!
+ * fireshell
+ * Fiercely quick and opinionated front-ends
+ * http://getfireshell.com
+ * @author Todd Motto
+ * @version 1.1.0
+ * Copyright 2013. MIT licensed.
+ */.clear:before,.clear:after{content:' ';display:table}.clear{*zoom:1}.clear:after{clear:both}*{box-sizing:border-box;font-smoothing:antialiased;text-rendering:optimizeLegibility}html{font-size:62.5%}body{font:300 13px/1.6 'Helvetica Neue',Helvetica,Arial;background:#fff;color:#444}.logo{display:none}.nav ul{list-style:none}@font-face{font-family:Font-Name;src:url(../fonts/font-name.eot);src:url(../fonts/font-name.eot?#iefix) format("embedded-opentype"),url(../fonts/font-name.woff) format("woff"),url(../fonts/font-name.ttf) format("truetype"),url(../fonts/font-name.svg#font-name) format("svg");font-weight:400;font-style:normal}::-moz-selection{background:#333;color:#fff;text-shadow:none}::selection{background:#333;color:#fff;text-shadow:none}@media print{*{background:transparent!important;color:#000!important;box-shadow:none!important;text-shadow:none!important}a,a:visited{text-decoration:underline}a[href]:after{content:" (" attr(href) ")"}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100%!important}@page{margin:.5cm}p,h2,h3{orphans:3;widows:3}h2,h3{page-break-after:avoid}}
