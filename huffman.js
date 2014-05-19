@@ -52,7 +52,10 @@ var TOTAL_MEMORY = Module['TOTAL_MEMORY'] || 16777216;
 var HEAP = new ArrayBuffer(TOTAL_MEMORY);
 
 var STDLIB = {
-    "Math": Math, "Int32Array": Int32Array, "Uint8Array": Uint8Array
+    "Math": Math,
+    "Int32Array": Int32Array,
+    "Uint8Array": Uint8Array,
+    "Uint32Array": Uint32Array
 };
 
 var FOREIGN = {
@@ -79,18 +82,18 @@ var Huffman = (function(stdlib, foreign, heap) {
     // --- Heaps --------------------------------------------------------------
     var HEAPU8 = new stdlib.Uint8Array(heap);
     var HEAPI32 = new stdlib.Int32Array(heap);
+    var HEAPU32 = new stdlib.Uint32Array(heap);
 
     // --- Constants ----------------------------------------------------------
-    var FREQ_TABLE_LENGTH   =  256; // size: 256 x 4 bytes
-    var HUFF_NODES_LENGTH   =    0; // size: 512 x 16 bytes
-    var HUFF_SYMBOLS_LENGTH =    0; // size: ...
+    var FREQ_TABLE_LENGTH =  256; // size: 256 x 4 bytes
+    var HUFF_NODES_LENGTH =    0; // size: 512 x 16 bytes
 
     // --- Heap memory offsets ------------------------------------------------
-    var FREQ_TABLE_OFFSET   =    0;
-    var HUFF_NODES_OFFSET   = 1024; // ^ + 4 * FREQ_TABLE_LENGTH
+    var FREQ_TABLE_OFFSET =    0;
+    var HUFF_NODES_OFFSET = 1024; // ^ + 4 * FREQ_TABLE_LENGTH
 
-    var INPUT_DATA_OFFSET   = 9216; // ^ + 256 * 256 (= all symbol lists)
-    var INPUT_DATA_LENGTH   =    0; // size: depends on input data
+    var INPUT_DATA_OFFSET = 9216; // ^ + 256 * 256 (= all symbol lists)
+    var INPUT_DATA_LENGTH =    0; // size: depends on input data
 
     // --- Methods ------------------------------------------------------------
 
@@ -127,11 +130,6 @@ var Huffman = (function(stdlib, foreign, heap) {
         var tmp2 = 0;
         var tmp3 = 0;
         var tmp4 = 0;
-        //var tmp5 = 0;
-
-        // Clear any previously generated huffman nodes or huffman symbol
-        // lists by resetting their length properties.
-        HUFF_SYMBOLS_LENGTH = 0;
 
         // Set the frequency table entries to zero.
         i_end = FREQ_TABLE_OFFSET + (4 * FREQ_TABLE_LENGTH | 0) | 0;
@@ -221,7 +219,6 @@ var Huffman = (function(stdlib, foreign, heap) {
             tmp4 = HEAPI32[(node_j + 4) >> 2] | 0;
 
             // Store the new huffman node in the huffman nodes list.
-            //HEAPI32[(i_end     ) >> 2] = tmp5 | 0;
             HEAPI32[(i_end     ) >> 2] = 0 | 0;
             HEAPI32[(i_end +  4) >> 2] = tmp2 + tmp4 | 0;
 
@@ -284,14 +281,15 @@ var Huffman = (function(stdlib, foreign, heap) {
 
         var len = 0;
 
-        var binary = 0;
-        var binary_index = 0;
+        var buf = 0;
+        var buf_index = 0;
+        var buf_length = 32;
         var available = 0;
         var msb = 0;
         var tmp = 0;
 
         var data_i = 0;
-        var replacement = 0;
+        var replace = 0;
         var i = 0;
         var i_end = 0;
 
@@ -300,11 +298,11 @@ var Huffman = (function(stdlib, foreign, heap) {
         for (i = data | 0; (i | 0) < (i_end | 0); i = i + 1 | 0) {
             // Find the encoding replacement value in the lookup table
             data_i = HEAPU8[i] | 0;
-            replacement = HEAPI32[(lookup + (data_i << 2) | 0) >> 2] | 0;
+            replace = HEAPI32[(lookup + (data_i << 2) | 0) >> 2] | 0;
 
             // Find the first non-zero bit, or return the last bit.
             msb = 0;
-            tmp = replacement;
+            tmp = replace;
 
             if (tmp & 0xffff0000) {
                 msb = msb +  16 | 0;
@@ -321,7 +319,6 @@ var Huffman = (function(stdlib, foreign, heap) {
                 tmp = tmp >> 4 | 0;
             }
 
-            // TODO reorder if statements. Smaller 'msb' are more common?.
             if ((tmp | 0) >= 8)
                 msb = msb + 4 | 0;
             else if ((tmp | 0) >= 4)
@@ -337,30 +334,57 @@ var Huffman = (function(stdlib, foreign, heap) {
             // not part of the replacement value.
             msb = msb - 1 | 0;
 
-            available = 8 - binary_index | 0;
+            available = buf_length - buf_index | 0;
 
             // If there are enough bits available, append the bits to the
             // current byte by shifting the old bits to the right and storing
             // the new bits at the created space.
             if ((msb | 0) <= (available | 0)) {
                 switch (msb | 0) {
-                    case 0: binary = binary      | (replacement & 0x1 ); break;
-                    case 1: binary = binary << 1 | (replacement & 0x3 ); break;
-                    case 2: binary = binary << 2 | (replacement & 0x7 ); break;
-                    case 3: binary = binary << 3 | (replacement & 0xf ); break;
-                    case 4: binary = binary << 4 | (replacement & 0x1f); break;
-                    case 5: binary = binary << 5 | (replacement & 0x3f); break;
-                    case 6: binary = binary << 6 | (replacement & 0x7f); break;
-                    case 7: binary = binary << 7 | (replacement & 0xff); break;
+                    case  0: buf = buf       | (replace &  0x1); break;
+                    case  1: buf = buf <<  1 | (replace &  0x3); break;
+                    case  2: buf = buf <<  2 | (replace &  0x7); break;
+                    case  3: buf = buf <<  3 | (replace &  0xf); break;
+                    case  4: buf = buf <<  4 | (replace & 0x1f); break;
+                    case  5: buf = buf <<  5 | (replace & 0x3f); break;
+                    case  6: buf = buf <<  6 | (replace & 0x7f); break;
+                    case  7: buf = buf <<  7 | (replace & 0xff); break;
+
+                    case  8: buf = buf <<  8 | (replace &  0x1ff); break;
+                    case  9: buf = buf <<  9 | (replace &  0x3ff); break;
+                    case 10: buf = buf << 10 | (replace &  0x7ff); break;
+                    case 11: buf = buf << 11 | (replace &  0xfff); break;
+                    case 12: buf = buf << 12 | (replace & 0x1fff); break;
+                    case 13: buf = buf << 13 | (replace & 0x3fff); break;
+                    case 14: buf = buf << 14 | (replace & 0x7fff); break;
+                    case 15: buf = buf << 15 | (replace & 0xffff); break;
+
+                    case 16: buf = buf << 16 | (replace &  0x1ffff); break;
+                    case 17: buf = buf << 17 | (replace &  0x3ffff); break;
+                    case 18: buf = buf << 18 | (replace &  0x7ffff); break;
+                    case 19: buf = buf << 19 | (replace &  0xfffff); break;
+                    case 20: buf = buf << 20 | (replace & 0x1fffff); break;
+                    case 21: buf = buf << 21 | (replace & 0x3fffff); break;
+                    case 22: buf = buf << 22 | (replace & 0x7fffff); break;
+                    case 23: buf = buf << 23 | (replace & 0xffffff); break;
+
+                    case 24: buf = buf << 24 | (replace &  0x1ffffff); break;
+                    case 25: buf = buf << 25 | (replace &  0x3ffffff); break;
+                    case 26: buf = buf << 26 | (replace &  0x7ffffff); break;
+                    case 27: buf = buf << 27 | (replace &  0xfffffff); break;
+                    case 28: buf = buf << 28 | (replace & 0x1fffffff); break;
+                    case 29: buf = buf << 29 | (replace & 0x3fffffff); break;
+                    case 30: buf = buf << 30 | (replace & 0x7fffffff); break;
+                    case 31: buf = buf << 31 | (replace & 0xffffffff); break;
                 }
 
-                binary_index = binary_index + msb | 0;
+                buf_index = buf_index + msb | 0;
 
-                if ((binary_index | 0) == 8) {
-                    HEAPU8[HUFF_NODES_OFFSET + len | 0] = binary | 0;
-                    len = len + 1 | 0;
-                    binary = 0;
-                    binary_index = 0;
+                if ((buf_index | 0) == (buf_length | 0)) {
+                    HEAPU32[(HUFF_NODES_OFFSET + len | 0) >> 2] = buf | 0;
+                    len = len + 4 | 0;
+                    buf = 0;
+                    buf_index = 0;
                 }
             } else {
                 // Create a bitmask
@@ -370,24 +394,24 @@ var Huffman = (function(stdlib, foreign, heap) {
                 // current byte by shifting the old bits to the right and
                 // storing the new bits at the created space.
                 for (; (msb | 0) >= 0; msb = msb - 1 | 0) {
-                    binary = (binary << 1) | ((replacement & tmp) >> msb | 0);
+                    buf = (buf << 1) | ((replace & tmp) >> msb | 0);
                     tmp = tmp >> 1 | 0;
-                    binary_index = binary_index + 1 | 0;
+                    buf_index = buf_index + 1 | 0;
 
-                    if ((binary_index | 0) == 8) {
-                        HEAPU8[HUFF_NODES_OFFSET + len | 0] = binary | 0;
-                        len = len + 1 | 0;
-                        binary = 0;
-                        binary_index = 0;
+                    if ((buf_index | 0) == (buf_length | 0)) {
+                        HEAPU32[(HUFF_NODES_OFFSET + len | 0) >> 2] = buf | 0;
+                        len = len + 4 | 0;
+                        buf = 0;
+                        buf_index = 0;
                     }
                 }
             }
         }
 
-        if (binary | 0) {
-            binary = binary << (8 - binary_index - 1) | 0;
-            HEAPU8[HUFF_NODES_OFFSET + len | 0] = binary | 0;
-            len = len + 1 | 0;
+        if (buf | 0) {
+            buf = buf << (buf_length - buf_index - 1) | 0;
+            HEAPU32[(HUFF_NODES_OFFSET + len | 0) >> 2] = buf | 0;
+            len = len + 4 | 0;
         }
 
         return len | 0;
