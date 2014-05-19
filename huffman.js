@@ -88,9 +88,7 @@ var Huffman = (function(stdlib, foreign, heap) {
     // --- Heap memory offsets ------------------------------------------------
     var FREQ_TABLE_OFFSET   =    0;
     var HUFF_NODES_OFFSET   = 1024; // ^ + 4 * FREQ_TABLE_LENGTH
-    //var HUFF_SYMBOLS_OFFSET =  9216; // ^ + 16 * HUFF_NODES_LENGTH
 
-    //var INPUT_DATA_OFFSET   = 74752; // ^ + 256 * 256 (= all symbol lists)
     var INPUT_DATA_OFFSET   = 9216; // ^ + 256 * 256 (= all symbol lists)
     var INPUT_DATA_LENGTH   =    0; // size: depends on input data
 
@@ -221,52 +219,6 @@ var Huffman = (function(stdlib, foreign, heap) {
             node_j = node_i + 16 | 0;
             tmp3 = HEAPI32[(node_j    ) >> 2] | 0;
             tmp4 = HEAPI32[(node_j + 4) >> 2] | 0;
-
-            //// Allocate a memory area for the merged symbol list.
-            //// TODO reduce the symbol list size. This requires an ASMJS
-            //// malloc-like function which will return a pointer to an
-            //// `allocated' memory area.
-            //tmp5 = HUFF_SYMBOLS_OFFSET + (256 * HUFF_SYMBOLS_LENGTH | 0) | 0;
-            //HUFF_SYMBOLS_LENGTH = HUFF_SYMBOLS_LENGTH + 1 | 0;
-
-            //// Merge the two symbol lists together.
-            //i = tmp5;
-
-            //// TODO: sort the symbol list while merging.
-
-            //// If the node has no pointers set to other nodes, the node is a
-            //// leaf node and has only one symbol. Leaf nodes do not have a
-            //// pointer to a symbol list, but just the symbol.
-            //if ((HEAPI32[(node_i + 8) >> 2] | 0) == 0) {
-            //    HEAPU8[i] = tmp1 | 0;
-            //    i = i + 1 | 0;
-            //} else {
-            //    while (HEAPU8[tmp1] | 0) {
-            //        HEAPU8[i] = HEAPU8[tmp1] | 0;
-            //        i = i + 1 | 0;
-            //        tmp1 = tmp1 + 1 | 0;
-            //    }
-
-            //    // Mark the end of the symbol list
-            //    HEAPU8[i] = 0;
-            //}
-
-            //// If the node has no pointers set to other nodes, the node is a
-            //// leaf node and has only one symbol. Leaf nodes do not have a
-            //// pointer to a symbol list, but just the symbol.
-            //if ((HEAPI32[(node_j + 8) >> 2] | 0) == 0) {
-            //    HEAPU8[i] = tmp3 | 0;
-            //    i = i + 1 | 0;
-            //} else {
-            //    while (HEAPU8[tmp3] | 0) {
-            //        HEAPU8[i] = HEAPU8[tmp3] | 0;
-            //        i = i + 1 | 0;
-            //        tmp3 = tmp3 + 1 | 0;
-            //    }
-
-            //    // Mark the end of the symbol list
-            //    HEAPU8[i] = 0;
-            //}
 
             // Store the new huffman node in the huffman nodes list.
             //HEAPI32[(i_end     ) >> 2] = tmp5 | 0;
