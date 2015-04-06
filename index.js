@@ -2,6 +2,14 @@
 
     'use strict';
     (function() {
+        var log = function(msg) {
+            console.log(msg);
+            document.querySelector('#log').innerHTML += msg + '<br>';
+        };
+
+        var clearLog = function() {
+            document.querySelector('#log').innerHTML = '';
+        };
 
         var streaming = false,
             video = document.querySelector('#video'),
@@ -43,7 +51,6 @@
                     }
 
                     if (!streaming) {
-                        console.log(video.videoHeight, video.videoWidth, width);
                         height = video.videoHeight / (video.videoWidth / width);
                         video.setAttribute('width', width);
                         video.setAttribute('height', height);
@@ -56,6 +63,8 @@
         }, false);
 
         function takePicture() {
+            clearLog();
+
             var image = video;
 
             canvas.width = width;
@@ -82,22 +91,22 @@
             Huffman.buildLookup(data);
             var endTime = new Date();
 
-            console.log('built in ' + (endTime - startTime) + 'ms');
+            log('built in ' + (endTime - startTime) + 'ms');
 
             var startTime = new Date();
             var encodedLength = Huffman.encode();
             var endTime = new Date();
 
-            console.log('encoded in ' + (endTime - startTime) + 'ms');
+            log('encoded in ' + (endTime - startTime) + 'ms');
 
             var inputSize = (originalLength / 1024.);
             var outputSize = (encodedLength / 1024.);
             var ratio = originalLength / encodedLength;
 
-            console.log('rgba length is ' + (inputSize * 4) + ' KB');
-            console.log('gray length is ' + inputSize + ' KB');
-            console.log('encoded length is ' + outputSize + ' KB');
-            console.log('compression ratio is ' + ratio);
+            log('rgba length is ' + (inputSize * 4) + ' KB');
+            log('gray length is ' + inputSize + ' KB');
+            log('encoded length is ' + outputSize + ' KB');
+            log('compression ratio is ' + ratio);
         }
 
         startbutton.addEventListener('click', function(ev) {

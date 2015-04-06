@@ -13,20 +13,26 @@
     <link href="assets/style.min.css" rel="stylesheet">
 
     <script src="assets/modernizr.js"></script>
+    <style>
+    #log {
+        font: 12px monospace;
+    }
+    </style>
   </head>
   <body>
 
-    <div class="main container">
+    <div class="main container-fluid">
         <div>
             <button id="startbutton"><i class="fa fa-camera"></i> Take photo</button>
         </div>
         <video id="video"></video>
         <canvas id="canvas"></canvas>
+        <div id="log"></div>
     </div>
 
     <script src="assets/jquery-1.10.2.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <script async src="huffman.js"></script>
-    <script async src="huffman-test.js"></script>
+    <script async src="index.js"></script>
   </body>
 </html>
